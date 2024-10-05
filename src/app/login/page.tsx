@@ -7,8 +7,12 @@ const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginUser>();
 
   const onSubmit = async (data: LoginUser) => {
-    const userData = await AuthService.login(data);
-    console.log(userData, 'userData');
+    AuthService.login(data).then((userData) => {
+        console.log(userData, 'userData');
+      })
+      .catch((error) => {
+        console.error('Login failed:', error);
+      });
   };
 
   return (

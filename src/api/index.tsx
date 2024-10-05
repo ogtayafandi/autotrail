@@ -6,7 +6,7 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: process.env.BASE_URL,
+      baseURL: process.env.NEXT_PUBLIC_BASEURL,
     });
 
     this.api.interceptors.request.use(
