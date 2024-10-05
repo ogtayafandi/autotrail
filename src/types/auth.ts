@@ -1,13 +1,16 @@
 export interface User {
-    id: string;
-    fullName: string;
-    userName: string;
+    token: string;
+    user: {
+        id: string;
+        name: string;
+        username: string;
+    }
 }
 
 export interface RegisterUser {
     id: string;
-    fullName: string;
-    userName: string;
+    name: string;
+    username: string;
     password: string;
     email: string;
 }

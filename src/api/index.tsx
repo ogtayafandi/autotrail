@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 class ApiService {
   protected api: AxiosInstance;
@@ -10,27 +9,27 @@ class ApiService {
     });
 
     this.api.interceptors.request.use(
-        (config: any) => {
-          const token = localStorage.getItem('token');
-          if (token) {
-            config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
-          }
-          return config;
-        },
-        (error) => Promise.reject(error)
+      (config: InternalAxiosRequestConfig) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error: unknown) => Promise.reject(error)
     );
         
     this.api.interceptors.response.use(
-        (response: AxiosResponse) => response,
-        (error) => {
-          if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            window.location.href = '/login'; 
-            return Promise.reject(error);
-          }
-          return Promise.reject(error);
+      (response: AxiosResponse) => response,
+      (error: unknown) => {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/login'; 
         }
-      );
+        return Promise.reject(error);
+      }
+    );
   }
 
   get<T>(url: string, params?: object): Promise<AxiosResponse<T>> {

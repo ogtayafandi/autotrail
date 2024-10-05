@@ -1,9 +1,10 @@
 'use client'
+
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { LoginUser } from '@/types/auth'
+import { RegisterUser } from '@/types/auth'
 import AuthService from '@/api/auth'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,29 +21,34 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useUserStore } from '@/store/authStore'
 
 const formSchema = z.object({
-  username: z.string().min(1, {
-    message: "E-poçt və ya İstifadəçi adınızı daxil edin",
+  name: z.string().min(2, {
+    message: "Ad və Soyadınızı ən azı 10 simvol olmalıdır",
   }),
-  password: z.string().min(1, {
-    message: "Şifrənizi daxil edin",
+  username: z.string().min(2, {
+    message: "İstifadəçi adı ən azı 3 simvol olmalıdır",
+  }),
+  email: z.string().email({
+    message: "Düzgün e-poçt ünvanı daxil edin",
+  }),
+  password: z.string().min(8, {
+    message: "Şifrə ən azı 8 simvol olmalıdır",
   }),
 })
 
-export default function Login() {
+export default function Register() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const setUser = useUserStore((state) => state.setUser);
 
   const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       username: "",
+      email: "",
       password: "",
     },
   })
@@ -51,13 +57,12 @@ export default function Login() {
     setIsLoading(true)
     setError(null)
     try {
-      const userData = await AuthService.login(data as LoginUser)
+      const userData = await AuthService.register(data as RegisterUser)
       console.log(userData, 'userData')
-      setUser(userData)
-      router.push('/')
+      router.push('/login')
     } catch (error) {
-      console.error('Login failed:', error)
-      setError('Giriş uğursuz oldu. Zəhmət olmasa məlumatlarınızı yoxlayın.')
+      console.error('Qeydiyyat uğursuz oldu:', error)
+      setError('Qeydiyyat uğursuz oldu. Zəhmət olmasa məlumatlarınızı yoxlayın.')
     } finally {
       setIsLoading(false)
     }
@@ -67,20 +72,46 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Giriş</CardTitle>
-          <CardDescription>Hesabınıza daxil olun</CardDescription>
+          <CardTitle>Qeydiyyat</CardTitle>
+          <CardDescription>Yeni hesab yaradın</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ad və Soyad</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ad və Soyadınızı daxil edin" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-poçt və ya İstifadəçi adı</FormLabel>
+                    <FormLabel>İstifadəçi adı</FormLabel>
                     <FormControl>
-                      <Input placeholder="E-poçt və ya İstifadəçi adınızı daxil edin" {...field} />
+                      <Input placeholder="İstifadəçi adınızı daxil edin" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-poçt</FormLabel>
+                    <FormControl>
+                      <Input placeholder="E-poçt ünvanınızı daxil edin" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,10 +139,10 @@ export default function Login() {
                 {isLoading ? (
                   <>
                     <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-                    Giriş edilir...
+                    Qeydiyyatdan keçilir...
                   </>
                 ) : (
-                  'Giriş'
+                  'Qeydiyyatdan keç'
                 )}
               </Button>
             </form>
@@ -119,7 +150,7 @@ export default function Login() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
-            Hesabınız yoxdur? <Link href="/register" className="text-blue-600 hover:underline">Qeydiyyatdan keçin</Link>
+            Artıq hesabınız var? <Link href="/login" className="text-blue-600 hover:underline">Daxil olun</Link>
           </p>
         </CardFooter>
       </Card>
