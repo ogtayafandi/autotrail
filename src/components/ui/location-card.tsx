@@ -1,3 +1,4 @@
+'use client'
 import React from "react";
 import {
   Card,
@@ -9,17 +10,20 @@ import {
 } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation'
 
 interface LocationCardProps {
-  key: number;
+  id: number;
   name: string;
   location: string;
   imageSrc: string;
 }
 
-const LocationCard = ({ key, location, name, imageSrc }: LocationCardProps) => {
+const LocationCard = ({ id, location, name, imageSrc }: LocationCardProps) => {
+  const route = useRouter()
+
   return (
-    <Card key={key}>
+    <Card>
       <CardHeader>
         <CardTitle>{name}</CardTitle>
         <CardDescription className="flex items-center">
@@ -35,8 +39,8 @@ const LocationCard = ({ key, location, name, imageSrc }: LocationCardProps) => {
         />
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full">
-          Detayları Gör
+        <Button variant="outline" className="w-full" onClick={() => route.push(`trail/${id}`)}>
+          Detallı baxış
         </Button>
       </CardFooter>
     </Card>
