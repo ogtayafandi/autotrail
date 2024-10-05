@@ -20,7 +20,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useUserStore } from '@/store/authStore'
 
 const formSchema = z.object({
   username: z.string().min(1, {
@@ -34,8 +33,6 @@ const formSchema = z.object({
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const setUser = useUserStore((state) => state.setUser);
 
   const router = useRouter()
 
@@ -52,8 +49,7 @@ export default function Login() {
     setError(null)
     try {
       const userData = await AuthService.login(data as LoginUser)
-      console.log(userData, 'userData')
-      setUser(userData)
+      localStorage.setItem('token', userData.token)
       router.push('/')
     } catch (error) {
       console.error('Login failed:', error)

@@ -1,5 +1,5 @@
 // authService.ts
-import { LoginUser, RegisterUser, User } from '@/types/auth';
+import { LoginUser, RegisterUser, SignedUser, User } from '@/types/auth';
 import ApiService from './index';
 
 class AuthService extends ApiService {
@@ -14,6 +14,15 @@ class AuthService extends ApiService {
 
   register(data: RegisterUser): Promise<User> {
     return this.post('/auth/register', data)
+      .then((response) => response.data)
+      .catch((error) => {
+        console.error('Register error:', error);
+        throw error;
+      });
+  }
+
+  signed(): Promise<SignedUser> {
+    return this.get('/auth/me')
       .then((response) => response.data)
       .catch((error) => {
         console.error('Register error:', error);

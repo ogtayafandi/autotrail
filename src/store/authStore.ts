@@ -1,10 +1,10 @@
 // store.ts
 import { create } from 'zustand';
-import { User } from '../types/auth';
+import { SignedUser } from '../types/auth';
 
 interface UserState {
-  user: User | null;
-  setUser: (user: User | null) => void;
+  user: SignedUser | null;
+  setUser: (user: SignedUser | null) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({

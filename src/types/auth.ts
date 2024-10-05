@@ -19,3 +19,12 @@ export interface LoginUser {
     password: string;
     username: string;
 }
+
+export interface SignedUser {
+    id: string
+    name: string
+    username: string
+    email: string
+    createdAt: string
+    updatedAt: string
+}
