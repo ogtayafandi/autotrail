@@ -1,22 +1,18 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from 'lucide-react'
-import Navbar from '@/components/ui/navbar'
-import Footer from '@/components/ui/footer'
 import LocationCard from "@/components/ui/location-card"
 import Map from "@/components/ui/map"
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-
       <section className="bg-green-100 py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-6">Explore New Trails</h1>
           <p className="text-xl text-gray-600 mb-8">Find the one that suits you best among thousands of hiking trails</p>
           <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-            <Input className="w-full md:w-96" placeholder="Enter location or route name" />
+            <Input className="w-full md:w-96 bg-white" placeholder="Enter location or route name" />
             <Button size="lg">
               <Search className="mr-2 h-4 w-4" /> Search
             </Button>
@@ -35,7 +31,6 @@ export default function Home() {
         </div>
       </section>
 
-      <Map />
 
       {/* <section className="bg-gray-100 py-16">
         <div className="container mx-auto px-4">
@@ -51,7 +46,6 @@ export default function Home() {
         </div>
       </section> */}
 
-      <Footer />
     </div>
   )
 }

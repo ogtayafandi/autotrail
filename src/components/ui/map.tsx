@@ -1,14 +1,22 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl, { Map as MapboxMap, Marker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css'; // Mapbox CSS
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY as string;
 
-const Map: React.FC = () => {
+interface MapProps {
+  frozen?: boolean; // Haritanın donmuş olup olmadığını belirler
+  showPlayButton?: boolean; // Play butonunun görünürlüğünü kontrol eder
+  style?: {}
+}
+
+const Map: React.FC<MapProps> = ({ frozen = false, showPlayButton = true, style = {} }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<MapboxMap | null>(null);
   const marker = useRef<Marker | null>(null);
+  const [tooltip, setTooltip] = useState<{ color: string; coordinates: [number, number] } | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false); // Oynatma durumu
 
   // Her bir segmentin koordinatlarını tanımlıyoruz
   const routeCoordinates = [
@@ -19,9 +27,9 @@ const Map: React.FC = () => {
   ];
 
   const lineSegments = [
-    { coordinates: [routeCoordinates[0], routeCoordinates[1]], color: '#ff0000' }, // Kırmızı
-    { coordinates: [routeCoordinates[1], routeCoordinates[2]], color: '#00ff00' }, // Yeşil
-    { coordinates: [routeCoordinates[2], routeCoordinates[3]], color: '#0000ff' }, // Mavi
+    { coordinates: [routeCoordinates[0], routeCoordinates[1]], color: '#ff0000', name: 'Kırmızı' }, // Kırmızı
+    { coordinates: [routeCoordinates[1], routeCoordinates[2]], color: '#00ff00', name: 'Yeşil' }, // Yeşil
+    { coordinates: [routeCoordinates[2], routeCoordinates[3]], color: '#0000ff', name: 'Mavi' }, // Mavi
   ];
 
   useEffect(() => {
@@ -30,7 +38,7 @@ const Map: React.FC = () => {
     // Harita tanımı
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
+      style: 'mapbox://styles/mapbox/outdoors-v11', // 3D topografik görünüm için stil
       center: [49.8671, 40.4093], // Koordinatlar
       zoom: 12,
       pitch: 60, // 3D görünüm açısı
@@ -42,6 +50,7 @@ const Map: React.FC = () => {
       // Terrain ve sky ekleyelim (3D görünüm için)
       map.current?.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
 
+      // Terrain kaynağını ekliyoruz
       map.current?.addSource('mapbox-dem', {
         type: 'raster-dem',
         url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
@@ -49,6 +58,7 @@ const Map: React.FC = () => {
         maxzoom: 14,
       });
 
+      // Harita katmanı ekliyoruz
       map.current?.addLayer({
         id: 'sky',
         type: 'sky',
@@ -62,7 +72,7 @@ const Map: React.FC = () => {
       // Her segmenti ekliyoruz
       lineSegments.forEach((segment, index) => {
         const sourceId = `route-${index}`;
-        
+
         // Segmentin GeoJSON verisini ekle
         map.current?.addSource(sourceId, {
           type: 'geojson',
@@ -90,6 +100,15 @@ const Map: React.FC = () => {
             'line-width': 4,
           },
         });
+
+        // Segment üzerine mouse ile gelindiğinde tooltip gösterme
+        map.current.on('mouseenter', `route-layer-${index}`, () => {
+          setTooltip({ color: segment.name, coordinates: segment.coordinates[1] });
+        });
+
+        map.current.on('mouseleave', `route-layer-${index}`, () => {
+          setTooltip(null);
+        });
       });
 
       // Marker'ı başlangıç noktasına ekleyelim
@@ -101,6 +120,7 @@ const Map: React.FC = () => {
 
   // Marker'ı çizgi boyunca hareket ettirme fonksiyonu (smooth animasyon)
   const startMarkerAnimation = () => {
+    setIsPlaying(true); // Oynatma durumunu başlat
     let index = 0;
     const totalPoints = routeCoordinates.length;
     let progress = 0;
@@ -137,6 +157,8 @@ const Map: React.FC = () => {
         }
 
         requestAnimationFrame(animateMarker);
+      } else {
+        setIsPlaying(false); // Oynatma durumu bitti
       }
     };
 
@@ -145,17 +167,34 @@ const Map: React.FC = () => {
 
   return (
     <div>
-      <button onClick={startMarkerAnimation} style={{ marginBottom: '10px' }}>
-        Play
-      </button>
+      {/* Play butonunu yalnızca showPlayButton true ise göster */}
+      {showPlayButton && !frozen && (
+        <button onClick={startMarkerAnimation} style={{ marginBottom: '10px' }} disabled={isPlaying}>
+          Play
+        </button>
+      )}
       <div
         ref={mapContainer}
-        style={{
-          width: '100%',
-          height: '500px', // Harita yüksekliği
-          position: 'relative',
-        }}
+        style={style}
       />
+      {/* Tooltip */}
+      {tooltip && (
+        <div
+          style={{
+            position: 'absolute',
+            background: 'white',
+            padding: '5px',
+            borderRadius: '4px',
+            border: '1px solid black',
+            transform: 'translate(-50%, -100%)',
+            left: `${tooltip.coordinates[0]}px`,
+            top: `${tooltip.coordinates[1]}px`,
+            pointerEvents: 'none',
+          }}
+        >
+          {tooltip.color}
+        </div>
+      )}
     </div>
   );
 };
