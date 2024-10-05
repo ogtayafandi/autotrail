@@ -1,12 +1,15 @@
+'use client'
 import Image from "next/image"
+import { useState } from "react"
 import { Star, MapPin, Camera, Navigation, MoreHorizontal } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Map from "@/components/ui/map"
 
 export default function TrailDetail() {
+  const [isPlaying, setIsPlaying] = useState(false); // Oynatma durumu
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -44,18 +47,7 @@ export default function TrailDetail() {
             Sündü yaxınlığında 8.2 km-lik dairəvi cığırı kəşf edin. Ümumiyyətlə, orta çətinlikli marşrut hesab
             olunur və tamamlanması orta hesabla 2 saat 59 dəqiqə çəkir. Bu, çox populyar bir ərazidir...
           </p>
-          <Button className="w-full mb-4">Cığırı önizlə</Button>
-          <div className="flex justify-between mb-6">
-            <Button variant="outline" size="icon">
-              <Camera className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Navigation className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button className="w-full mb-4" onClick={() => setIsPlaying(true)}>Cığırı önizlə</Button>
           <Tabs defaultValue="about" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="about">Haqqında</TabsTrigger>
@@ -106,7 +98,9 @@ export default function TrailDetail() {
       <div className="flex-1 relative">
         <Map
           frozen={false}
-          showPlayButton={false}
+          showPlayButton={true}
+          setIsPlaying={setIsPlaying}
+          isPlaying={isPlaying}
           style={{
             width: '100%',
             height: '100%', // Xəritənin hündürlüyünü 100% etdik

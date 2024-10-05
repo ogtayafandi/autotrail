@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl, { Map as MapboxMap, Marker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css'; // Mapbox CSS
+import { boolean } from 'zod';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY as string;
 
@@ -9,14 +10,15 @@ interface MapProps {
   frozen?: boolean; // Haritanın donmuş olup olmadığını belirler
   showPlayButton?: boolean; // Play butonunun görünürlüğünü kontrol eder
   style?: {}
+  setIsPlaying?: any
+  isPlaying?: boolean
 }
 
-const Map: React.FC<MapProps> = ({ frozen = false, showPlayButton = true, style = {} }) => {
+const Map: React.FC<MapProps> = ({ frozen = false, showPlayButton = true, style = {}, setIsPlaying = () => {}, isPlaying = false }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<MapboxMap | null>(null);
   const marker = useRef<Marker | null>(null);
   const [tooltip, setTooltip] = useState<{ color: string; coordinates: [number, number] } | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false); // Oynatma durumu
 
   // Her bir segmentin koordinatlarını tanımlıyoruz
   const routeCoordinates = [
@@ -164,6 +166,12 @@ const Map: React.FC<MapProps> = ({ frozen = false, showPlayButton = true, style 
 
     animateMarker();
   };
+
+  useEffect(() => {
+    if(isPlaying) {
+        startMarkerAnimation()
+    }
+  }, [isPlaying])
 
   return (
     <div>
