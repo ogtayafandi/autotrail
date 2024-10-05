@@ -1,4 +1,3 @@
-// store.ts
 import { create } from 'zustand';
 import { SignedUser } from '../types/auth';
 
