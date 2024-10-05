@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Map from "@/components/ui/map";
+// import Gallery from "@/components/ui/gallery";
 
 export default function TrailDetail() {
   return (
@@ -47,6 +48,7 @@ export default function TrailDetail() {
           </div>
 
           <div className="mb-8">
+            {/* <Gallery images=[] /> */}
           </div>
 
           <Card className="mb-8">
