@@ -4,6 +4,7 @@ import { Search } from 'lucide-react'
 import Navbar from '@/components/ui/navbar'
 import Footer from '@/components/ui/footer'
 import LocationCard from "@/components/ui/location-card"
+import Map from "@/components/ui/map"
 
 export default function Home() {
   return (
@@ -33,6 +34,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <Map />
 
       {/* <section className="bg-gray-100 py-16">
         <div className="container mx-auto px-4">
