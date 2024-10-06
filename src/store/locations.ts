@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Location } from '../types/location';
 
 interface LocationState {
-  locations: Location | null;
+  locations: any | null;
   setLocations: (user: Location | null) => void;
 }
 

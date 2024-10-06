@@ -12,7 +12,7 @@ class Locations extends ApiService {
   }
 
   getSingleLocation(id: string): Promise<Location> {
-    return this.get(`location/${id}`)
+    return this.get(`locations/${id}`)
     .then((response) => response.data)
     .catch((error) => {
       console.error('Register error:', error);
