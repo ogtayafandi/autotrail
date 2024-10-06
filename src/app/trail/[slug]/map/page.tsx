@@ -28,7 +28,7 @@ export default function TrailDetail() {
     fetchLocations();
   }, []);
 
-  console.log(location, 'location');
+  console.log(location?.map?.geometry?.coordinates, 'dds')
 
   return (
     <div className="flex h-screen">
