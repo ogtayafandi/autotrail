@@ -127,8 +127,8 @@ const Map: React.FC<MapProps> = ({ segments, style = {}, setIsPlaying = () => {}
         const end = segments[index + 1];
 
         // Calculate interpolated position
-        const lng = start[0] + (end[0] - start[0]) * progress;
-        const lat = start[1] + (end[1] - start[1]) * progress;
+        const lng = start?.[0] + (end?.[0] - start?.[0]) * progress;
+        const lat = start?.[1] + (end?.[1] - start?.[1]) * progress;
 
         // Update marker position
         markerRef.current?.setLngLat([lng, lat]);

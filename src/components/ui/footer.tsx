@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">TrailFinder Haqqında</h3>
+              <h3 className="text-lg font-semibold mb-4">AutoTrail Haqqında</h3>
               <ul className="space-y-2">
                 <li><Link href="/about" className="hover:underline">Haqqımızda</Link></li>
               </ul>
@@ -35,7 +35,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-700 text-center">
-            <p>&copy; 2024 Diginen və TrailFinder. Bütün hüquqlar qorunur.</p>
+            <p>&copy; 2024 Diginen və AutoTrail. Bütün hüquqlar qorunur.</p>
           </div>
         </div>
       </footer>

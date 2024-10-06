@@ -19,12 +19,14 @@ import Locations from "@/api/locations";
 export default function TrailDetail() {
   const params = useParams();
   const router = useRouter();
-  const [location, setLocation] = useState<any>()
+  const [location, setLocation] = useState<any>();
 
   useLayoutEffect(() => {
     const fetchLocations = async () => {
       try {
-        const fetchedLocations = await Locations.getSingleLocation(params?.slug);
+        const fetchedLocations = await Locations.getSingleLocation(
+          params?.slug
+        );
         setLocation(fetchedLocations);
         console.log(fetchedLocations?.data, "fetchedLocations");
       } catch (error) {
@@ -34,7 +36,7 @@ export default function TrailDetail() {
     fetchLocations();
   }, []);
 
-  console.log(location, 'location');
+  console.log(location, "location");
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -66,17 +68,23 @@ export default function TrailDetail() {
           <div className="flex items-center gap-2 mb-6">
             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
             <span className="font-semibold">{location?.average_star}</span>
-            <span className="text-sm text-muted-foreground">({location?.review_count} Rəy)</span>
+            <span className="text-sm text-muted-foreground">
+              ({location?.review_count} Rəy)
+            </span>
           </div>
 
-          <div className="mb-8">{/* <Gallery images=[] /> */}</div>
+          <div className="mb-8">
+            <img
+              src={'https://upload.wikimedia.org/wikipedia/commons/f/f4/Qobustan.jpg'}
+              alt="Trail"
+              className="w-full h-48 object-cover rounded-md"
+            />
+          </div>
 
           <Card className="mb-8">
             <CardContent className="pt-6">
               <h2 className="text-xl font-semibold mb-4">Təsvir</h2>
-              <p className="text-muted-foreground">
-                {location?.description}
-              </p>
+              <p className="text-muted-foreground">{location?.description}</p>
             </CardContent>
           </Card>
 
@@ -85,13 +93,16 @@ export default function TrailDetail() {
               <h2 className="text-xl font-semibold mb-4">Cığır Məlumatı</h2>
               <ul className="space-y-2">
                 <li>
-                  <span className="font-semibold">Çətinlik:</span> {location?.diff}
+                  <span className="font-semibold">Çətinlik:</span>{" "}
+                  {location?.diff}
                 </li>
                 <li>
-                  <span className="font-semibold">Məsafə:</span> {location?.distance} m
+                  <span className="font-semibold">Məsafə:</span>{" "}
+                  {location?.distance} m
                 </li>
                 <li>
-                  <span className="font-semibold">Yüksəklik artımı:</span> {location?.elevation} m
+                  <span className="font-semibold">Yüksəklik artımı:</span>{" "}
+                  {location?.elevation} m
                 </li>
               </ul>
             </CardContent>
@@ -109,14 +120,14 @@ export default function TrailDetail() {
             </CardContent>
           </Card>
 
-              <Button
-                variant="outline"
-                className="mb-8 w-full rounded-md"
-                onClick={() => router.push(`${params.slug}/map`)}
-              >
-                İstiqamət
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+          <Button
+            variant="outline"
+            className="mb-8 w-full rounded-md"
+            onClick={() => router.push(`${params.slug}/map`)}
+          >
+            İstiqamət
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
 
           <Card>
             <CardContent className="pt-6">
@@ -124,8 +135,12 @@ export default function TrailDetail() {
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{location?.average_star}</span>
-                  <span className="text-sm text-muted-foreground">({location?.review_count})</span>
+                  <span className="font-semibold">
+                    {location?.average_star}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    ({location?.review_count})
+                  </span>
                 </div>
                 <Button variant="outline" size="sm">
                   Rəy yaz

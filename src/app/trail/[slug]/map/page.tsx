@@ -68,7 +68,7 @@ export default function TrailDetail() {
             </TabsContent>
             <TabsContent value="weather">
               <div className="space-y-2 text-sm">
-                <p>Bugün: 25°C, Günəşli</p>
+                <p>Bugün: 22°C, Qismən buludlu</p>
                 <p>Sabah: 23°C, Qismən buludlu</p>
                 <p>Bazar: 22°C, Yağışlı</p>
               </div>
