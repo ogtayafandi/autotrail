@@ -18,7 +18,7 @@ export default function TrailDetail() {
   useLayoutEffect(() => {
     const fetchLocations = async () => {
       try {
-        const fetchedLocations = await locations.getSingleLocation(params?.slug);
+        const fetchedLocations = await locations.getSingleLocation(params?.slug as string);
         setLocation(fetchedLocations);
         console.log(fetchedLocations?.data, "fetchedLocations");
       } catch (error) {
@@ -28,7 +28,6 @@ export default function TrailDetail() {
     fetchLocations();
   }, []);
 
-  console.log(location?.map?.geometry?.coordinates, 'dds')
 
   return (
     <div className="flex h-screen">
@@ -78,24 +77,26 @@ export default function TrailDetail() {
         </div>
       </div>
 
-      {/* Map */}
-      <div className="flex-1 relative">
-        <Map
-          frozen={false}
-          showPlayButton={true}
-          setIsPlaying={setIsPlaying}
-          isPlaying={isPlaying}
-          style={{
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        />
-      </div>
+   
+      {
+        location?.map?.geometry?.coordinates && <div className="flex-1 relative">
+          <Map
+            frozen={false}
+            showPlayButton={true}
+            isPlaying={isPlaying}
+            segments={location?.map?.geometry?.coordinates ?? []}
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+        </div>
+      }
     </div>
   )
 }

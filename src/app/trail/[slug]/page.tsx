@@ -12,7 +12,6 @@ import {
   Flag,
   ArrowRight,
 } from "lucide-react";
-import Map from "@/components/ui/map";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import Locations from "@/api/locations";
@@ -110,31 +109,14 @@ export default function TrailDetail() {
             </CardContent>
           </Card>
 
-          <Card className="mb-8">
-            <CardContent className="p-0">
-              <div>
-                <Map
-                  frozen={true}
-                  showPlayButton={false}
-                  style={{
-                    width: "100%",
-                    height: "200px",
-                    position: "relative",
-                    borderRadius: "calc(var(--radius) - 2px)",
-                  }}
-                />
-              </div>
-
               <Button
                 variant="outline"
-                className="w-full rounded-none rounded-bl-md rounded-br-md"
+                className="mb-8 w-full rounded-md"
                 onClick={() => router.push(`${params.slug}/map`)}
               >
                 İstiqamət
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-            </CardContent>
-          </Card>
 
           <Card>
             <CardContent className="pt-6">

@@ -55,9 +55,9 @@ export default function Home() {
               <LocationCard
                 key={i}
                 id={item.id}
-                location={item.city}
+                location={`${item.city}, ${item.country}`}
                 name={item.name}
-                imageSrc={item.assets[0]}
+                imageSrc={'https://upload.wikimedia.org/wikipedia/commons/f/f4/Qobustan.jpg'}
               />
             ))}
           </div>

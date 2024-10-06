@@ -1,210 +1,197 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl, { Map as MapboxMap, Marker } from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css'; // Mapbox CSS
-import { boolean } from 'zod';
+import { useEffect, useRef } from 'react';
+import mapboxgl, { Map as MapboxMap, Marker, Popup, GeoJSONSource } from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY as string;
 
-interface MapProps {
-  frozen?: boolean; // Haritanın donmuş olup olmadığını belirler
-  showPlayButton?: boolean; // Play butonunun görünürlüğünü kontrol eder
-  style?: {}
-  setIsPlaying?: any
-  isPlaying?: boolean
+interface SegmentPoint {
+  lon: number;
+  lat: number;
+  height: number;
+  temperature: number;
 }
 
-const Map: React.FC<MapProps> = ({ frozen = false, showPlayButton = true, style = {}, setIsPlaying = () => {}, isPlaying = false }) => {
+interface MapProps {
+  frozen?: boolean;
+  showPlayButton?: boolean;
+  style?: React.CSSProperties;
+  setIsPlaying?: any;
+  isPlaying?: boolean;
+  segments: [number, number, number, number][];
+}
+
+const Map: React.FC<MapProps> = ({ segments, style = {}, setIsPlaying = () => {}, isPlaying = false }) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const map = useRef<MapboxMap | null>(null);
-  const marker = useRef<Marker | null>(null);
-  const [tooltip, setTooltip] = useState<{ color: string; coordinates: [number, number] } | null>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
+  const markerRef = useRef<Marker | null>(null); // Store marker reference
+  const animationRef = useRef<number | null>(null); // Store animation frame for cleanup
 
-  // Her bir segmentin koordinatlarını tanımlıyoruz
-  const routeCoordinates = [
-    [49.8671, 40.4093], // Başlangıç noktası
-    [49.8771, 40.4193], // İkinci nokta
-    [49.8871, 40.4293], // Üçüncü nokta
-    [49.8971, 40.4393], // Dördüncü nokta (Bitiş noktası)
-  ];
-
-  const lineSegments = [
-    { coordinates: [routeCoordinates[0], routeCoordinates[1]], color: '#ff0000', name: 'Kırmızı' }, // Kırmızı
-    { coordinates: [routeCoordinates[1], routeCoordinates[2]], color: '#00ff00', name: 'Yeşil' }, // Yeşil
-    { coordinates: [routeCoordinates[2], routeCoordinates[3]], color: '#0000ff', name: 'Mavi' }, // Mavi
-  ];
+  // Convert raw segments data to SegmentPoint objects
+  const segmentPoints: SegmentPoint[] = segments.map((point) => ({
+    lon: point[0],
+    lat: point[1],
+    height: point[2],
+    temperature: point[3],
+  }));
 
   useEffect(() => {
-    if (map.current || !mapContainer.current) return;
+    if (mapRef.current || !mapContainer.current) return;
 
-    // Harita tanımı
-    map.current = new mapboxgl.Map({
+    // Initialize the map
+    mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/outdoors-v11', // 3D topografik görünüm için stil
-      center: [49.8671, 40.4093], // Koordinatlar
-      zoom: 12,
-      pitch: 60, // 3D görünüm açısı
-      bearing: -20,
-      antialias: true,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [segmentPoints[0].lon, segmentPoints[0].lat],
+      zoom: 14,
     });
 
-    map.current.on('load', () => {
-      // Terrain ve sky ekleyelim (3D görünüm için)
-      map.current?.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+    // Add navigation controls (zoom buttons)
+    mapRef.current.addControl(new mapboxgl.NavigationControl());
 
-      // Terrain kaynağını ekliyoruz
-      map.current?.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14,
+    mapRef.current.on('load', () => {
+      addRouteLayer();
+      addMarkers(); // Initialize markers
+    });
+
+    // Cleanup on unmount
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, [segmentPoints]);
+
+  // Function to add the route line
+  const addRouteLayer = () => {
+    if (!mapRef.current) return;
+
+    const coordinates: [number, number][] = segmentPoints.map((point) => [point.lon, point.lat]);
+
+    const geojson: GeoJSON.Feature<GeoJSON.LineString> = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates,
+      },
+    };
+
+    // Add the route as a source
+    if (!mapRef.current.getSource('route')) {
+      mapRef.current.addSource('route', {
+        type: 'geojson',
+        data: geojson,
       });
+    } else {
+      (mapRef.current.getSource('route') as GeoJSONSource).setData(geojson);
+    }
 
-      // Harita katmanı ekliyoruz
-      map.current?.addLayer({
-        id: 'sky',
-        type: 'sky',
+    // Add the route as a layer
+    if (!mapRef.current.getLayer('route-layer')) {
+      mapRef.current.addLayer({
+        id: 'route-layer',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
         paint: {
-          'sky-type': 'atmosphere',
-          'sky-atmosphere-sun': [0.0, 90.0],
-          'sky-atmosphere-sun-intensity': 15,
+          'line-color': '#FF0000',
+          'line-width': 4,
         },
       });
+    }
+  };
 
-      // Her segmenti ekliyoruz
-      lineSegments.forEach((segment, index) => {
-        const sourceId = `route-${index}`;
-
-        // Segmentin GeoJSON verisini ekle
-        map.current?.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: segment.coordinates,
-            },
-          },
-        });
-
-        // Çizgi katmanını ekliyoruz
-        map.current?.addLayer({
-          id: `route-layer-${index}`,
-          type: 'line',
-          source: sourceId,
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round',
-          },
-          paint: {
-            'line-color': segment.color,
-            'line-width': 4,
-          },
-        });
-
-        // Segment üzerine mouse ile gelindiğinde tooltip gösterme
-        map.current.on('mouseenter', `route-layer-${index}`, () => {
-          setTooltip({ color: segment.name, coordinates: segment.coordinates[1] });
-        });
-
-        map.current.on('mouseleave', `route-layer-${index}`, () => {
-          setTooltip(null);
-        });
-      });
-
-      // Marker'ı başlangıç noktasına ekleyelim
-      marker.current = new mapboxgl.Marker()
-        .setLngLat(routeCoordinates[0])
-        .addTo(map.current);
-    });
-  }, []);
-
-  // Marker'ı çizgi boyunca hareket ettirme fonksiyonu (smooth animasyon)
+  // Function to animate the marker along the route
   const startMarkerAnimation = () => {
-    setIsPlaying(true); // Oynatma durumunu başlat
+    console.log('hello')
+
+    setIsPlaying(true); // Start playing
     let index = 0;
-    const totalPoints = routeCoordinates.length;
+    const totalPoints = segments.length;
     let progress = 0;
-    const speed = 0.01; // Hareket hızını ayarlayabilirsiniz
+    const speed = 3; // Adjust speed
 
     const animateMarker = () => {
+      console.log(index, totalPoints - 1)
+
       if (index < totalPoints - 1) {
-        const start = routeCoordinates[index];
-        const end = routeCoordinates[index + 1];
-
-        // Animasyonun ilerlemesi
-        const lng = start[0] + (end[0] - start[0]) * progress;
-        const lat = start[1] + (end[1] - start[1]) * progress;
-
-        // Marker'ı güncelle
-        marker.current?.setLngLat([lng, lat]);
-
-        // Haritayı marker'la birlikte döndürüp zoomlayalım (havalı bir efekt için)
-        map.current?.easeTo({
-          center: [lng, lat],
-          zoom: 14,
-          pitch: 60 + progress * 10, // Hafif bir pitch artışı
-          bearing: map.current.getBearing() + 0.5, // Hafif bir döndürme
-          duration: 50,
-        });
-
-        // İlerlemeyi artır
-        progress += speed;
-
-        // Bir noktadan diğerine geçiş tamamlandığında sonraki noktaya geç
         if (progress >= 1) {
           index++;
           progress = 0;
         }
 
-        requestAnimationFrame(animateMarker);
+        const start = segments[index];
+        const end = segments[index + 1];
+
+        // Calculate interpolated position
+        const lng = start[0] + (end[0] - start[0]) * progress;
+        const lat = start[1] + (end[1] - start[1]) * progress;
+
+        // Update marker position
+        markerRef.current?.setLngLat([lng, lat]);
+
+        // Move the map with the marker
+
+        mapRef.current?.easeTo({
+          center: [lng, lat],
+          zoom: 14,
+          // pitch: 60, // Slight pitch increase
+          bearing: mapRef.current?.getBearing() ?? 0 + 0.5, // Slight rotation
+          duration: 50,
+        });
+
+        // Update progress
+        progress += speed;
+
+        // Move to the next point when progress reaches 1
+
+
+        // Keep animating
+        animationRef.current = requestAnimationFrame(animateMarker);
       } else {
-        setIsPlaying(false); // Oynatma durumu bitti
+        setIsPlaying(false); // Stop playing
+        if (animationRef.current) cancelAnimationFrame(animationRef.current); // Cleanup animation
       }
     };
 
     animateMarker();
   };
 
+  // Cleanup the animation when the component unmounts
   useEffect(() => {
-    if(isPlaying) {
-        startMarkerAnimation()
-    }
-  }, [isPlaying])
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, []);
 
-  return (
-    <div>
-      {/* Play butonunu yalnızca showPlayButton true ise göster */}
-      {showPlayButton && !frozen && (
-        <button onClick={startMarkerAnimation} style={{ marginBottom: '10px' }} disabled={isPlaying}>
-          Play
-        </button>
-      )}
-      <div
-        ref={mapContainer}
-        style={style}
-      />
-      {/* Tooltip */}
-      {tooltip && (
-        <div
-          style={{
-            position: 'absolute',
-            background: 'white',
-            padding: '5px',
-            borderRadius: '4px',
-            border: '1px solid black',
-            transform: 'translate(-50%, -100%)',
-            left: `${tooltip.coordinates[0]}px`,
-            top: `${tooltip.coordinates[1]}px`,
-            pointerEvents: 'none',
-          }}
-        >
-          {tooltip.color}
-        </div>
-      )}
-    </div>
-  );
+  // Start animation when isPlaying becomes true
+  useEffect(() => {
+    console.log(isPlaying && markerRef.current && mapRef.current)
+
+    if (isPlaying && markerRef.current && mapRef.current) {
+      startMarkerAnimation();
+    }
+  }, [isPlaying]);
+
+  // Function to add markers with popups
+  const addMarkers = () => {
+    if (!mapRef.current) return;
+
+    // Initialize marker at the first point
+    const popup = new Popup({ offset: 25 }).setHTML(
+      `<h3>Height: ${segmentPoints[0].height}m</h3><p>Temperature: ${segmentPoints[0].temperature}°C</p>`
+    );
+
+    markerRef.current = new Marker()
+      .setLngLat([segmentPoints[0].lon, segmentPoints[0].lat])
+      .setPopup(popup)
+      .addTo(mapRef.current);
+  };
+
+  return <div ref={mapContainer} style={{ width: '100%', height: '500px', ...style }} />;
 };
 
 export default Map;
